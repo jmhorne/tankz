@@ -50,15 +50,33 @@ func (t *Tank) Update() error {
 
 	if ebiten.IsKeyPressed(ebiten.KeyLeft) {
 		t.turretAngle--
+
+		if t.turretAngle < -90 {
+			t.turretAngle = -90
+		}
+
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyRight) {
 		t.turretAngle++
+
+		if t.turretAngle > 90 {
+			t.turretAngle = 90
+		}
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyUp) {
 		t.power++
+
+		if t.power > 100 {
+			t.power = 100
+		}
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyDown) {
 		t.power--
+
+		if t.power < 0 {
+			t.power = 0
+		}
+
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
 		t.Fired = true
@@ -103,5 +121,7 @@ func (t *Tank) drawTurret(screen *ebiten.Image) {
 	op.GeoM.Translate(t.x+float64(tb.X/2), t.y+float64(tb.Y/2))
 	screen.DrawImage(t.turretImage, op)
 
-	ebitenutil.DebugPrint(screen, fmt.Sprintf("angle: %d", t.turretAngle))
+	if t.activeTank {
+		ebitenutil.DebugPrint(screen, fmt.Sprintf("angle: %d, power: %d", t.turretAngle, t.power))
+	}
 }
