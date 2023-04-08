@@ -107,7 +107,30 @@ func (t *Tank) Deactivate() {
 }
 
 func (t *Tank) Fire() (projectile.Projectile, error) {
-	return projectile.NewCannonball(50, 50)
+	// create projectile in order to get its dimensions
+	p, err := projectile.NewCannonball(0, 0, t.turretAngle)
+	ps := p.Size()
+
+	// get tank body and turret image sizes
+	tis := t.turretImage.Bounds().Size()
+	tbs := t.bodyImage.Bounds().Size()
+
+	// r is distance from middle of tank(origins below) to tip of turret
+	r := float64(tis.Y)
+	originX := -float64(ps.X/2) + t.x + float64(tbs.X/2)
+	originY := -float64(ps.Y/2) + t.y + float64(tbs.Y/2)
+
+	// convert turret angle to radians and calculate x,y of where cannonball
+	// should be so it starts at tip of turret
+	radians := float64(t.turretAngle - 90) *  0.017453
+	posX := r * math.Cos(float64(radians))
+	posY := r * math.Sin(float64(radians))
+	
+	// reset projectile position
+	p.SetX(posX + originX)
+	p.SetY(posY + originY)
+
+	return p, err
 }
 
 func (t *Tank) drawTurret(screen *ebiten.Image) {

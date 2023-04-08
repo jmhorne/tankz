@@ -1,21 +1,25 @@
 package projectile
 
 import (
-	"image/color"
+	"image"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/vector"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
 type Cannonball struct {
-	x, y float64
+	props properties
 }
 
-func NewCannonball(x, y float64) (*Cannonball, error) {
+func NewCannonball(x, y float64, angle int) (*Cannonball, error) {
 	c := new(Cannonball)
-	c.x = x
-	c.y = y
-	return c, nil
+	c.props.x = x
+	c.props.y = y
+	c.props.angle = angle
+
+	var err error
+	c.props.image, _, err = ebitenutil.NewImageFromFile("internal/assets/projectiles/cannonball.png")
+	return c, err
 }
 
 func (c *Cannonball) Update() error {
@@ -23,5 +27,19 @@ func (c *Cannonball) Update() error {
 }
 
 func (c *Cannonball) Draw(screen *ebiten.Image) {
-	vector.DrawFilledCircle(screen, float32(c.x), float32(c.y), 20, color.RGBA{0, 0, 0, 0xff}, true)
+	op := &ebiten.DrawImageOptions{}
+	op.GeoM.Translate(c.props.x, c.props.y)
+	screen.DrawImage(c.props.image, op)
+}
+
+func (c *Cannonball) Size() image.Point {
+	return c.props.image.Bounds().Size()
+}
+
+func (c *Cannonball) SetX(x float64) {
+	c.props.x = x
+}
+
+func (c *Cannonball) SetY(y float64) {
+	c.props.y = y
 }
