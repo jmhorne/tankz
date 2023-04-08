@@ -2,6 +2,7 @@ package projectile
 
 import (
 	"image"
+	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -11,11 +12,17 @@ type Cannonball struct {
 	props properties
 }
 
-func NewCannonball(x, y float64, angle int) (*Cannonball, error) {
+func NewCannonball(x, y, velocity, angle float64) (*Cannonball, error) {
 	c := new(Cannonball)
-	c.props.x = x
-	c.props.y = y
+	c.props.startX = x
+	c.props.startY = y
+	c.props.x, c.props.y = x, y
 	c.props.angle = angle
+	c.props.velocity = velocity
+	c.props.time = 0
+
+	c.props.velocityX = c.props.velocity * math.Cos(c.props.angle)
+	c.props.velocityY = c.props.velocity * math.Sin(c.props.angle)
 
 	var err error
 	c.props.image, _, err = ebitenutil.NewImageFromFile("internal/assets/projectiles/cannonball.png")
@@ -23,6 +30,10 @@ func NewCannonball(x, y float64, angle int) (*Cannonball, error) {
 }
 
 func (c *Cannonball) Update() error {
+	c.props.x = (c.props.velocityX * c.props.time) + c.props.startX
+	c.props.y = c.props.startY + (c.props.velocityY * c.props.time) + (gravity * (math.Pow(c.props.time, 2)) / 2)
+	c.props.time += .2
+
 	return nil
 }
 
@@ -37,9 +48,9 @@ func (c *Cannonball) Size() image.Point {
 }
 
 func (c *Cannonball) SetX(x float64) {
-	c.props.x = x
+	c.props.startX = x
 }
 
 func (c *Cannonball) SetY(y float64) {
-	c.props.y = y
+	c.props.startY = y
 }

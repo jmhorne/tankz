@@ -66,8 +66,8 @@ func (t *Tank) Update() error {
 	if ebiten.IsKeyPressed(ebiten.KeyUp) {
 		t.power++
 
-		if t.power > 100 {
-			t.power = 100
+		if t.power > 150 {
+			t.power = 150
 		}
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyDown) {
@@ -108,7 +108,8 @@ func (t *Tank) Deactivate() {
 
 func (t *Tank) Fire() (projectile.Projectile, error) {
 	// create projectile in order to get its dimensions
-	p, err := projectile.NewCannonball(0, 0, t.turretAngle)
+	radians := float64(t.turretAngle - 90) * (math.Pi/180.0)
+	p, err := projectile.NewCannonball(0, 0, float64(t.power), radians)
 	ps := p.Size()
 
 	// get tank body and turret image sizes
@@ -122,7 +123,6 @@ func (t *Tank) Fire() (projectile.Projectile, error) {
 
 	// convert turret angle to radians and calculate x,y of where cannonball
 	// should be so it starts at tip of turret
-	radians := float64(t.turretAngle - 90) *  0.017453
 	posX := r * math.Cos(float64(radians))
 	posY := r * math.Sin(float64(radians))
 	
