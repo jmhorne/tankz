@@ -14,6 +14,7 @@ type Projectile interface {
 	Update() error
 	Draw(screen *ebiten.Image)
 	GetCollisionArea() collision.CollisionArea
+	GetDamageDealt() int
 	X() float64
 	Y() float64
 }

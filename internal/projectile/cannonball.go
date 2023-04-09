@@ -68,3 +68,7 @@ func (c *Cannonball) GetCollisionArea() collision.CollisionArea {
 	half := float64(s.X)/2
 	return collision.Circle(c.props.x+half, c.props.y+half, half)
 }
+
+func (c *Cannonball) GetDamageDealt() int {
+	return 5
+}

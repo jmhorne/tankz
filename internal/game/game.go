@@ -9,6 +9,7 @@ import (
 	"tankz/internal/tank"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
@@ -37,7 +38,7 @@ func New(w, h int) (*Game, error) {
 	g.activePlayer = 0
 
 	g.players = make([]*tank.Tank, 2)
-	
+
 	if g.players[0], err = tank.New(float64(width-150), float64(groundLevel-100), "red"); err != nil {
 		return nil, err
 	}
@@ -58,7 +59,8 @@ func (g *Game) Update() error {
 	}
 
 	if !g.Running {
-		return fmt.Errorf("done")
+		// return fmt.Errorf("done")
+		return nil
 	}
 
 	if g.activeProjectile != nil {
@@ -101,6 +103,10 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	if g.activeProjectile != nil {
 		g.activeProjectile.Draw(screen)
 	}
+
+	if !g.Running {
+		ebitenutil.DebugPrint(screen, fmt.Sprintf("Player %d WON!!", g.activePlayer+1))
+	}
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
@@ -118,11 +124,17 @@ func (g *Game) testProjectile() {
 		return
 	}
 
-	opponent := g.players[int(math.Abs(float64(g.activePlayer - 1)))]
+	opponent := g.players[int(math.Abs(float64(g.activePlayer-1)))]
 
 	if collision.Collides(opponent.GetCollisionArea(), g.activeProjectile.GetCollisionArea()) {
-		g.switchPlayer()
-		g.activeProjectile = nil
+		opponent.TakeDamage(g.activeProjectile.GetDamageDealt())
+
+		if opponent.Health <= 0 {
+			g.Running = false
+		} else {
+			g.switchPlayer()
+			g.activeProjectile = nil
+		}
 	}
 }
 

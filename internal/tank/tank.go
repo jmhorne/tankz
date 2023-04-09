@@ -3,6 +3,7 @@ package tank
 import (
 	"fmt"
 	"image"
+	"image/color"
 	"math"
 	"tankz/internal/collision"
 	"tankz/internal/projectile"
@@ -10,6 +11,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
 type Tank struct {
@@ -19,7 +21,11 @@ type Tank struct {
 	x, y, speed float64
 	activeTank  bool
 	power       int
+	maxPower    int
 	Fired       bool
+	Health      int
+	maxHealth   int
+	Defense     int
 }
 
 func New(x, y float64, color string) (*Tank, error) {
@@ -28,9 +34,13 @@ func New(x, y float64, color string) (*Tank, error) {
 	t.x = x
 	t.y = y
 	t.speed = 0.5
-	t.turretAngle = 0
+	t.turretAngle = 77
 	t.Fired = false
-	t.power = 0
+	t.power = 150
+	t.maxPower = 150
+	t.Health = 100
+	t.maxHealth = 100
+	t.Defense = 0
 	t.activeTank = false
 
 	if t.bodyImage, _, err = ebitenutil.NewImageFromFile(fmt.Sprintf("internal/assets/tanks/%s/body.png", color)); err != nil {
@@ -67,7 +77,7 @@ func (t *Tank) Update() error {
 	if ebiten.IsKeyPressed(ebiten.KeyUp) {
 		t.power++
 
-		if t.power > 150 {
+		if t.power > t.maxPower {
 			t.power = 150
 		}
 	}
@@ -92,6 +102,12 @@ func (t *Tank) Draw(screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(t.x, t.y)
 	screen.DrawImage(t.bodyImage, op)
+
+	//TODO add HUD here
+	if t.activeTank {
+		// ebitenutil.DebugPrint(screen, fmt.Sprintf("angle: %d, power: %d, health: %d", t.turretAngle, t.power, t.Health))
+		t.drawHUD(screen)
+	}
 }
 
 func (t *Tank) Bounds() image.Rectangle {
@@ -109,7 +125,7 @@ func (t *Tank) Deactivate() {
 
 func (t *Tank) Fire() (projectile.Projectile, error) {
 	// create projectile in order to get its dimensions
-	radians := float64(t.turretAngle - 90) * (math.Pi/180.0)
+	radians := float64(t.turretAngle-90) * (math.Pi / 180.0)
 	p, err := projectile.NewCannonball(0, 0, float64(t.power), radians)
 	ps := p.Size()
 
@@ -126,12 +142,25 @@ func (t *Tank) Fire() (projectile.Projectile, error) {
 	// should be so it starts at tip of turret
 	posX := r * math.Cos(float64(radians))
 	posY := r * math.Sin(float64(radians))
-	
+
 	// reset projectile position
 	p.SetX(posX + originX)
 	p.SetY(posY + originY)
 
 	return p, err
+}
+
+func (t *Tank) GetCollisionArea() collision.CollisionArea {
+	tb := t.bodyImage.Bounds().Size()
+	return collision.Rectangle(t.x+50, t.y+float64(tb.X/2), float64(tb.X)-100, float64(tb.Y)-float64(tb.X/2))
+}
+
+func (t *Tank) TakeDamage(damage int) {
+	if t.Defense > damage {
+		return
+	}
+
+	t.Health -= damage - t.Defense
 }
 
 func (t *Tank) drawTurret(screen *ebiten.Image) {
@@ -144,14 +173,37 @@ func (t *Tank) drawTurret(screen *ebiten.Image) {
 
 	op.GeoM.Translate(t.x+float64(tb.X/2), t.y+float64(tb.Y/2))
 	screen.DrawImage(t.turretImage, op)
-
-	//TODO add HUD here
-	if t.activeTank {
-		ebitenutil.DebugPrint(screen, fmt.Sprintf("angle: %d, power: %d", t.turretAngle, t.power))
-	}
 }
 
-func (t *Tank) GetCollisionArea() collision.CollisionArea {
+func (t *Tank) drawHUD(screen *ebiten.Image) {
 	tb := t.bodyImage.Bounds().Size()
-	return collision.Rectangle(t.x+50, t.y+float64(tb.X/2), float64(tb.X)-100, float64(tb.Y)-float64(tb.X/2))
+
+	// power bar
+	barX := float32(t.x) + 5
+	barY := float32(t.y+float64(tb.Y)) + 5
+	barW := float32(30)
+	barH := float32(60)
+	// frame
+	vector.DrawFilledRect(screen, barX-5, barY-5, barW+10, barH+10, color.RGBA{136, 147, 138, 0xff}, true)
+
+	// behind meter
+	vector.DrawFilledRect(screen, barX, barY, barW, barH, color.RGBA{0xff, 0xff, 0xff, 0xff}, true)
+
+	// meter
+	meterH := (barH / float32(t.maxPower)) * float32(t.power)
+	offset := barH - meterH
+	vector.DrawFilledRect(screen, barX, barY+offset, barW, meterH, color.RGBA{0xff, 0, 0, 0xff}, true)
+
+	// health bar
+	barX += float32(tb.X) - barW
+	
+	// frame
+	vector.DrawFilledRect(screen, barX-5, barY-5, barW+10, barH+10, color.RGBA{136, 147, 138, 0xff}, true)
+	
+	// behind meter
+	vector.DrawFilledRect(screen, barX, barY, barW, barH, color.RGBA{0xff, 0xff, 0xff, 0xff}, true)
+
+	meterH = (barH / float32(t.maxHealth)) * float32(t.Health)
+	offset = barH - meterH
+	vector.DrawFilledRect(screen, barX, barY+offset, barW, meterH, color.RGBA{0xff, 0, 0, 0xff}, true)
 }
