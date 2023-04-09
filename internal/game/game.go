@@ -3,15 +3,19 @@ package game
 import (
 	"fmt"
 	"image/color"
+	"log"
 	"math"
 	"tankz/internal/collision"
 	"tankz/internal/projectile"
 	"tankz/internal/tank"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/examples/resources/fonts"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
+	"github.com/hajimehoshi/ebiten/v2/text"
 	"github.com/hajimehoshi/ebiten/v2/vector"
+	"golang.org/x/image/font"
+	"golang.org/x/image/font/opentype"
 )
 
 var (
@@ -104,9 +108,35 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		g.activeProjectile.Draw(screen)
 	}
 
-	if !g.Running {
-		ebitenutil.DebugPrint(screen, fmt.Sprintf("Player %d WON!!", g.activePlayer+1))
+	if g.Running {
+		return
+		// ebitenutil.DebugPrint(screen, fmt.Sprintf("Player %d WON!!", g.activePlayer+1))
 	}
+
+	var mplusNormalFont font.Face
+
+	tt, err := opentype.Parse(fonts.MPlus1pRegular_ttf)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	const dpi = 72
+	mplusNormalFont, err = opentype.NewFace(tt, &opentype.FaceOptions{
+		Size:    24,
+		DPI:     dpi,
+		Hinting: font.HintingVertical,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	bgW := float32(200)
+	bgH := float32(50)
+	bgX := float32(float32(width/2) - (bgW/2))
+	bgY := float32(float32(height/2) - (bgH/2))
+
+	vector.DrawFilledRect(screen, bgX, bgY, bgW, bgH, color.Black, true)
+	text.Draw(screen, fmt.Sprintf("Player %d Won", g.activePlayer+1), mplusNormalFont, int(bgX + 20), int(bgY + 30), color.White)
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {

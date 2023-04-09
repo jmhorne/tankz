@@ -34,9 +34,9 @@ func New(x, y float64, color string) (*Tank, error) {
 	t.x = x
 	t.y = y
 	t.speed = 0.5
-	t.turretAngle = 77
+	t.turretAngle = 0
 	t.Fired = false
-	t.power = 150
+	t.power = 20
 	t.maxPower = 150
 	t.Health = 100
 	t.maxHealth = 100
