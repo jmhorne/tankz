@@ -39,19 +39,11 @@ func New(w, h int) (*Game, error) {
 	g := new(Game)
 	g.Running = true
 	g.activeProjectile = nil
-	g.activePlayer = 0
-
 	g.players = make([]*tank.Tank, 2)
 
-	if g.players[0], err = tank.New(float64(width-150), float64(groundLevel-100), "red"); err != nil {
+	if err = g.initPlayers(); err != nil {
 		return nil, err
 	}
-
-	if g.players[1], err = tank.New(10, float64(groundLevel-100), "blue"); err != nil {
-		return nil, err
-	}
-
-	g.players[g.activePlayer].Activate()
 
 	return g, err
 }
@@ -64,6 +56,10 @@ func (g *Game) Update() error {
 
 	if !g.Running {
 		// return fmt.Errorf("done")
+		if ebiten.IsKeyPressed(ebiten.KeyEnter) {
+			g.Running = true
+			return g.initPlayers()
+		}
 		return nil
 	}
 
@@ -171,4 +167,20 @@ func (g *Game) testProjectile() {
 func (g *Game) switchPlayer() {
 	g.activePlayer = int(math.Abs(float64(g.activePlayer - 1)))
 	g.players[g.activePlayer].Activate()
+}
+
+func (g *Game) initPlayers() error {
+	var err error
+	g.activePlayer = 0
+
+	if g.players[0], err = tank.New(float64(width-150), float64(groundLevel-100), "red"); err != nil {
+		return err
+	}
+
+	if g.players[1], err = tank.New(10, float64(groundLevel-100), "blue"); err != nil {
+		return err
+	}
+
+	g.players[g.activePlayer].Activate()
+	return nil
 }
