@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"math"
+	"tankz/internal/collision"
 	"tankz/internal/projectile"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -144,7 +145,13 @@ func (t *Tank) drawTurret(screen *ebiten.Image) {
 	op.GeoM.Translate(t.x+float64(tb.X/2), t.y+float64(tb.Y/2))
 	screen.DrawImage(t.turretImage, op)
 
+	//TODO add HUD here
 	if t.activeTank {
 		ebitenutil.DebugPrint(screen, fmt.Sprintf("angle: %d, power: %d", t.turretAngle, t.power))
 	}
+}
+
+func (t *Tank) GetCollisionArea() collision.CollisionArea {
+	tb := t.bodyImage.Bounds().Size()
+	return collision.Rectangle(t.x+50, t.y+float64(tb.X/2), float64(tb.X)-100, float64(tb.Y)-float64(tb.X/2))
 }

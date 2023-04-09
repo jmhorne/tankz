@@ -3,6 +3,7 @@ package projectile
 import (
 	"image"
 	"math"
+	"tankz/internal/collision"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -53,4 +54,17 @@ func (c *Cannonball) SetX(x float64) {
 
 func (c *Cannonball) SetY(y float64) {
 	c.props.startY = y
+}
+
+func (c *Cannonball) X() float64 {
+	return c.props.x
+}
+func (c *Cannonball) Y() float64 {
+	return c.props.y
+}
+
+func (c *Cannonball) GetCollisionArea() collision.CollisionArea {
+	s := c.Size()
+	half := float64(s.X)/2
+	return collision.Circle(c.props.x+half, c.props.y+half, half)
 }

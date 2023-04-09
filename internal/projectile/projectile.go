@@ -1,6 +1,10 @@
 package projectile
 
-import "github.com/hajimehoshi/ebiten/v2"
+import (
+	"tankz/internal/collision"
+
+	"github.com/hajimehoshi/ebiten/v2"
+)
 
 var (
 	gravity = 9.8
@@ -9,6 +13,9 @@ var (
 type Projectile interface {
 	Update() error
 	Draw(screen *ebiten.Image)
+	GetCollisionArea() collision.CollisionArea
+	X() float64
+	Y() float64
 }
 
 type properties struct {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image/color"
 	"math"
+	"tankz/internal/collision"
 	"tankz/internal/projectile"
 	"tankz/internal/tank"
 
@@ -60,6 +61,14 @@ func (g *Game) Update() error {
 		return fmt.Errorf("done")
 	}
 
+	if g.activeProjectile != nil {
+		g.activeProjectile.Update()
+
+		g.testProjectile()
+
+		return nil
+	}
+
 	for _, p := range g.players {
 		p.Update()
 	}
@@ -71,12 +80,6 @@ func (g *Game) Update() error {
 			return err
 		}
 		ap.Deactivate()
-		g.activePlayer = int(math.Abs(float64(g.activePlayer - 1)))
-		g.players[g.activePlayer].Activate()
-	}
-
-	if g.activeProjectile != nil {
-		g.activeProjectile.Update()
 	}
 
 	return nil
@@ -102,4 +105,28 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
 	return width, height
+}
+
+func (g *Game) testProjectile() {
+	// check if out of bounds
+	x := g.activeProjectile.X()
+	y := g.activeProjectile.Y()
+
+	if x < 0 || x > float64(width) || y > float64(groundLevel) {
+		g.activeProjectile = nil
+		g.switchPlayer()
+		return
+	}
+
+	opponent := g.players[int(math.Abs(float64(g.activePlayer - 1)))]
+
+	if collision.Collides(opponent.GetCollisionArea(), g.activeProjectile.GetCollisionArea()) {
+		g.switchPlayer()
+		g.activeProjectile = nil
+	}
+}
+
+func (g *Game) switchPlayer() {
+	g.activePlayer = int(math.Abs(float64(g.activePlayer - 1)))
+	g.players[g.activePlayer].Activate()
 }
