@@ -89,6 +89,12 @@ func (t *Tank) Update() error {
 		}
 
 	}
+	if ebiten.IsKeyPressed(ebiten.KeyA) {
+		t.x -= t.speed
+	}
+	if ebiten.IsKeyPressed(ebiten.KeyD) {
+		t.x += t.speed
+	}
 	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
 		t.Fired = true
 	}
