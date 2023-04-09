@@ -3,7 +3,7 @@ tank game
 
 # Install
 
-go build -o tankz cmd/internal/tankz/main.go
+go build -o tankz cmd/tankz/main.go
 
 # How to play
 
